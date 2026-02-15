@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar para verificar autenticación
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Función para verificar que el usuario es parte de la sala
+    function isPlayerInRoom() {
+      return isSignedIn() && 
+             request.auth.uid in resource.data.players.keys();
+    }
+    
+    // Función para verificar que el usuario es el host
+    function isHost() {
+      return isSignedIn() && 
+             request.auth.uid == resource.data.host;
+    }
+    
+    // Reglas para las salas de juego
+    match /rooms/{roomId} {
+      
+      // Permitir lectura si está autenticado
+      allow read: if isSignedIn();
+      
+      // Permitir crear sala si está autenticado y los datos son válidos
+      allow create: if isSignedIn() 
+        && request.resource.data.keys().hasAll([
+          'createdAt', 
+          'host', 
+          'players', 
+          'status',
+          'mode',
+          'turn'
+        ])
+        && request.resource.data.players.size() <= 2
+        && request.resource.data.host == request.auth.uid
+        && request.resource.data.status == 'waiting';
+      
+      // Permitir actualizar solo a los jugadores de la sala
+      allow update: if isPlayerInRoom()
+        // No permitir cambiar el host
+        && request.resource.data.host == resource.data.host
+        // No permitir más de 2 jugadores
+        && request.resource.data.players.size() <= 2
+        // No permitir eliminar jugadores existentes (solo agregar)
+        && resource.data.players.keys().hasAll(
+          request.resource.data.players.keys()
+        );
+      
+      // No permitir eliminar salas (se pueden agregar reglas de limpieza con Cloud Functions)
+      allow delete: if false;
+    }
+    
+    // Denegar acceso a cualquier otra colección
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

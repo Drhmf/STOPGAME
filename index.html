@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STOP Numérico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Juego rapido de reflejos</p>
+                <h1>STOP Numérico</h1>
+                <p class="subtitle">Un duelo mental donde el tiempo llena tu mano. Encuentra el numero correcto antes de que se complete.</p>
+            </div>
+            <div class="hero-badge">
+                <span class="label">Turno</span>
+                <span id="turn-indicator" class="turn-pill">Jugador 1</span>
+            </div>
+        </header>
+
+        <section class="controls">
+            <div class="control-card">
+                <div class="room-row">
+                    <div class="room-field">
+                        <label class="label" for="room-code">Codigo de sala</label>
+                        <input id="room-code" type="text" placeholder="Ej: 7X4Q" maxlength="8" />
+                    </div>
+                    <div class="room-actions">
+                        <button id="create-room-btn" class="primary">Crear sala</button>
+                        <button id="join-room-btn" class="ghost">Unirse</button>
+                    </div>
+                    <div class="room-status">
+                        <p class="label">Estado</p>
+                        <p id="room-status" class="status-text">Sin conexion</p>
+                        <p class="label">Tu rol</p>
+                        <p id="player-role" class="status-text">--</p>
+                    </div>
+                </div>
+                <div class="name-fields">
+                    <div class="name-field">
+                        <label class="label" for="player-name">Tu nombre</label>
+                        <input id="player-name" type="text" placeholder="Tu nombre" maxlength="16" />
+                    </div>
+                </div>
+                <div class="mode-row">
+                    <div class="mode-card">
+                        <p class="label">Modo de seleccion</p>
+                        <div class="mode-toggle" role="group" aria-label="Modo de seleccion">
+                            <label>
+                                <input type="radio" name="mode" value="auto" checked />
+                                <span>Automatico</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="mode" value="manual" />
+                                <span>Manual</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="manual-input">
+                        <label class="label" for="manual-number">Numero manual</label>
+                        <div class="manual-row">
+                            <input id="manual-number" type="number" min="1" max="100" placeholder="1 - 100" />
+                            <button id="manual-btn" class="ghost" disabled>Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-row">
+                    <div>
+                        <p class="label">Numero objetivo</p>
+                        <div id="target-number" class="target-number">--</div>
+                    </div>
+                    <div class="control-buttons">
+                        <button id="start-btn" class="primary">Iniciar juego</button>
+                        <button id="roll-btn" class="ghost" disabled>Generar numero</button>
+                    </div>
+                </div>
+                <p id="status-text" class="status-text">Presiona "Iniciar juego" para comenzar.</p>
+            </div>
+        </section>
+
+        <section class="arena">
+            <div class="hands">
+                <article class="player-card" data-player="1">
+                    <header>
+                        <h2 id="player1-label">Jugador 1</h2>
+                        <p class="label">Progreso de mano</p>
+                    </header>
+                    <div class="hand" id="hand-1">
+                        <div class="hand-shape">
+                            <img class="hand-image" src="MANO PARA JUEGO.png" alt="Mano del jugador" />
+                            <div class="hand-dots" data-player="1" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                    <p id="hand-progress-1" class="progress-text">0 / 20</p>
+                </article>
+
+                <article class="player-card" data-player="2">
+                    <header>
+                        <h2 id="player2-label">Jugador 2</h2>
+                        <p class="label">Progreso de mano</p>
+                    </header>
+                    <div class="hand" id="hand-2">
+                        <div class="hand-shape">
+                            <img class="hand-image" src="MANO PARA JUEGO.png" alt="Mano del jugador" />
+                            <div class="hand-dots" data-player="2" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                    <p id="hand-progress-2" class="progress-text">0 / 20</p>
+                </article>
+            </div>
+
+            <div class="boards">
+                <div class="board-section" data-player="1">
+                    <div class="board-header">
+                        <h2 id="board-title-1">Tablero Jugador 1</h2>
+                        <p class="label">Solo este jugador ve sus aciertos.</p>
+                    </div>
+                    <div id="board-1" class="board" role="grid" aria-label="Tablero de numeros jugador 1"></div>
+                    <div class="history">
+                        <p id="history-title-1" class="label">Historial jugador 1</p>
+                        <div id="history-1" class="history-list"></div>
+                    </div>
+                </div>
+                <div class="board-section" data-player="2">
+                    <div class="board-header">
+                        <h2 id="board-title-2">Tablero Jugador 2</h2>
+                        <p class="label">Solo este jugador ve sus aciertos.</p>
+                    </div>
+                    <div id="board-2" class="board" role="grid" aria-label="Tablero de numeros jugador 2"></div>
+                    <div class="history">
+                        <p id="history-title-2" class="label">Historial jugador 2</p>
+                        <div id="history-2" class="history-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="victory" class="victory hidden" role="status" aria-live="polite"></div>
+    </div>
+
+    <div id="winner-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="winner-title">
+        <div class="modal-card">
+            <h2 id="winner-title">Ganador</h2>
+            <p id="winner-message" class="modal-message"></p>
+            <button id="play-again" class="primary">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

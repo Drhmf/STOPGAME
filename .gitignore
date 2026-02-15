@@ -1,0 +1,16 @@
+# Firebase configuration with credentials
+firebase-config.js
+
+# macOS
+.DS_Store
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
