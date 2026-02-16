@@ -79,7 +79,22 @@ class RoomClient {
 
 	async createRoom(code, payload) {
 		const ref = this.roomRef(code);
-		await setDoc(ref, payload);
+		await runTransaction(this.db, async (transaction) => {
+			const snapshot = await transaction.get(ref);
+			if (snapshot.exists()) {
+				const data = snapshot.data();
+				// Verificar si la sala está expirada (24 horas)
+				const expirationTime = 24 * 60 * 60 * 1000; // 24 horas en ms
+				const updatedAt = data.updatedAt?.toMillis() || 0;
+				const now = Date.now();
+				if (now - updatedAt < expirationTime) {
+					throw new Error("Ya existe una sala con ese código. Prueba otro.");
+				}
+				// Si está expirada, eliminar y crear nueva
+				transaction.delete(ref);
+			}
+			transaction.set(ref, payload);
+		});
 		return ref;
 	}
 
@@ -91,13 +106,21 @@ class RoomClient {
 				throw new Error("La sala no existe.");
 			}
 			const data = snapshot.data();
+			// Verificar si la sala está expirada (24 horas)
+			const expirationTime = 24 * 60 * 60 * 1000; // 24 horas en ms
+			const updatedAt = data.updatedAt?.toMillis() || 0;
+			const now = Date.now();
+			if (now - updatedAt >= expirationTime) {
+				throw new Error("Esta sala ha expirado. El host debe crear una nueva.");
+			}
 			if (data.players && data.players["2"]) {
 				throw new Error("La sala ya tiene dos jugadores.");
 			}
 			transaction.update(ref, {
 				"players.2": payload,
 				status: "waiting",
-				updatedAt: serverTimestamp()
+				updatedAt: serverTimestamp(),
+				lastActivity: serverTimestamp()
 			});
 		});
 		return ref;
@@ -120,7 +143,8 @@ class RoomClient {
 			targetOwnerId: null,
 			winnerId: null,
 			resetVersion,
-			updatedAt: serverTimestamp()
+			updatedAt: serverTimestamp(),
+			lastActivity: serverTimestamp()
 		});
 	}
 
@@ -128,7 +152,8 @@ class RoomClient {
 		const ref = this.roomRef(code);
 		await updateDoc(ref, {
 			[`players.${playerId}`]: payload,
-			updatedAt: serverTimestamp()
+			updatedAt: serverTimestamp(),
+			lastActivity: serverTimestamp()
 		});
 	}
 
@@ -162,7 +187,8 @@ class RoomClient {
 				[`players.${playerId}.usedNumbers`]: nextUsed,
 				targetNumber: number,
 				targetOwnerId: playerId,
-				updatedAt: serverTimestamp()
+				updatedAt: serverTimestamp(),
+				lastActivity: serverTimestamp()
 			});
 		});
 	}
@@ -193,7 +219,8 @@ class RoomClient {
 				targetNumber: null,
 				targetOwnerId: null,
 				currentPlayerId: finderId,
-				updatedAt: serverTimestamp()
+				updatedAt: serverTimestamp(),
+				lastActivity: serverTimestamp()
 			});
 		});
 	}
@@ -222,13 +249,30 @@ class RoomClient {
 			const nextProgress = Math.min((player.handProgress || 0) + 1, maxDots);
 			const updates = {
 				[`players.${playerId}.handProgress`]: nextProgress,
-				updatedAt: serverTimestamp()
+				updatedAt: serverTimestamp(),
+				lastActivity: serverTimestamp()
 			};
 			if (nextProgress >= maxDots) {
 				updates.status = "finished";
 				updates.winnerId = playerId;
 			}
 			transaction.update(ref, updates);
+		});
+	}
+
+	async deleteExpiredRoom(code) {
+		const ref = this.roomRef(code);
+		await runTransaction(this.db, async (transaction) => {
+			const snapshot = await transaction.get(ref);
+			if (snapshot.exists()) {
+				const data = snapshot.data();
+				const expirationTime = 24 * 60 * 60 * 1000; // 24 horas
+				const updatedAt = data.updatedAt?.toMillis() || 0;
+				const now = Date.now();
+				if (now - updatedAt >= expirationTime) {
+					transaction.delete(ref);
+				}
+			}
 		});
 	}
 }
