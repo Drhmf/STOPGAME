@@ -85,6 +85,26 @@ class LocalStorage {
 		const profile = this.getProfile();
 		return profile.achievements.includes(achievementId);
 	}
+
+	// ========== PERSISTENCIA DE SESIÓN DE PARTIDA ==========
+	static saveGameSession(roomCode, playerId, playerName) {
+		const session = {
+			roomCode,
+			playerId,
+			playerName,
+			savedAt: Date.now()
+		};
+		localStorage.setItem("gameSession", JSON.stringify(session));
+	}
+
+	static getGameSession() {
+		const stored = localStorage.getItem("gameSession");
+		return stored ? JSON.parse(stored) : null;
+	}
+
+	static clearGameSession() {
+		localStorage.removeItem("gameSession");
+	}
 }
 
 // ========== SISTEMA DE LOGROS ==========
@@ -545,6 +565,7 @@ class Game {
 		this.winnerModal = options.winnerModal;
 		this.winnerMessage = options.winnerMessage;
 		this.playAgainBtn = options.playAgainBtn;
+		this.exitGameBtn = options.exitGameBtn;
 		this.nameInput = options.nameInput;
 		this.nameLabels = options.nameLabels;
 		this.players = options.players;
@@ -615,7 +636,17 @@ class Game {
 			this.startBtn.disabled = true;
 			return;
 		}
-		this.setStatus("Ingresa o crea una sala para comenzar.");
+
+		// Intentar restaurar sesión guardada
+		const savedSession = LocalStorage.getGameSession();
+		if (savedSession) {
+			this.setStatus("Restaurando sesión anterior...");
+			this.nameInput.value = savedSession.playerName;
+			this.roomCodeInput.value = savedSession.roomCode;
+			this.reconnectToRoom(savedSession.roomCode, savedSession.playerId);
+		} else {
+			this.setStatus("Ingresa o crea una sala para comenzar.");
+		}
 	}
 
 	bindEvents() {
@@ -633,6 +664,7 @@ class Game {
 			input.addEventListener("change", () => this.handleModeChange());
 		});
 		this.playAgainBtn.addEventListener("click", () => this.handleStartGame());
+		this.exitGameBtn.addEventListener("click", () => this.handleExitGame());
 		this.players.forEach((player) => {
 			player.boardEl.addEventListener("click", (event) => this.handleBoardClick(event, player));
 		});
@@ -836,6 +868,29 @@ class Game {
 		this.createRoomBtn.disabled = true;
 		this.joinRoomBtn.disabled = true;
 		this.startBtn.disabled = playerId !== 1;
+		
+		// Guardar sesión para persistencia
+		LocalStorage.saveGameSession(code, playerId, this.nameInput.value.trim());
+		
+		this.listenToRoom();
+		this.updateVisibleBoards();
+	}
+
+	reconnectToRoom(code, playerId) {
+		// Intenta reconectarse a una sala sin necesidad de crear/unirse de nuevo
+		this.roomCode = code;
+		this.playerId = playerId;
+		this.playerRoleEl.textContent = `Jugador ${playerId}`;
+		this.roomCodeInput.value = code;
+		this.syncNameInput();
+		this.createRoomBtn.disabled = true;
+		this.joinRoomBtn.disabled = true;
+		this.startBtn.disabled = playerId !== 1;
+		
+		// Mostrar que está intentando reconectar
+		this.setRoomStatus(`Reconectando a sala: ${code}...`);
+		NotificationSystem.notify("Intentando reconectar...", "info");
+		
 		this.listenToRoom();
 		this.updateVisibleBoards();
 	}
@@ -981,6 +1036,37 @@ class Game {
 		} catch (error) {
 			this.setStatus(error.message || "No se pudo iniciar la partida.");
 		}
+	}
+
+	handleExitGame() {
+		// Limpiar sesión guardada
+		LocalStorage.clearGameSession();
+		
+		// Limpiar estado de la sala
+		this.roomCode = null;
+		this.playerId = null;
+		this.roomUnsubscribe?.();
+		
+		// Reset UI
+		this.victoryEl.classList.add("hidden");
+		this.winnerModal.classList.add("hidden");
+		this.nameInput.value = "";
+		this.roomCodeInput.value = "";
+		
+		// Habilitar botones de crear/unir
+		this.createRoomBtn.disabled = false;
+		this.joinRoomBtn.disabled = false;
+		this.startBtn.disabled = true;
+		
+		// Reset estado
+		this.state = this.getInitialState();
+		
+		// Mostrar mensaje
+		this.setStatus("Ingresa o crea una sala para comenzar.");
+		this.setRoomStatus("Sin conexión");
+		this.playerRoleEl.textContent = "--";
+		
+		NotificationSystem.notify("Saliste de la partida", "info");
 	}
 
 	async handleResetIfNeeded(remoteVersion) {
@@ -1300,6 +1386,7 @@ const game = new Game({
 	winnerModal: document.getElementById("winner-modal"),
 	winnerMessage: document.getElementById("winner-message"),
 	playAgainBtn: document.getElementById("play-again"),
+	exitGameBtn: document.getElementById("exit-game-btn"),
 	nameInput: document.getElementById("player-name"),
 	nameLabels: {
 		1: document.getElementById("player1-label"),
