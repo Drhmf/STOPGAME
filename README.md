@@ -472,8 +472,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👤 Autor
 
-Proyecto desarrollado como parte de un ejercicio de desarrollo web full-stack con tecnologías modernas.
-Por Hector Miguel Feliz Feliz - DRHMF
+- Proyecto desarrollado como parte de un ejercicio de desarrollo web full-stack con tecnologías modernas.
+- Por Hector Miguel Feliz Feliz - DRHMF
 
 ---
 
