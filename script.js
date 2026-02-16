@@ -622,7 +622,8 @@ class Game {
 			targetOwnerId: null,
 			status: "idle",
 			mode: "auto",
-			winnerId: null
+			winnerId: null,
+			lastResetVersion: 0
 		};
 	}
 
@@ -933,6 +934,12 @@ class Game {
 		this.state.winnerId = data.winnerId ?? null;
 		this.resetVersion = data.resetVersion || 0;
 		this.gameStartTime = data.gameStartTime;
+		
+		// Inicializar lastResetVersion si es la primera vez que se sincroniza
+		if (this.state.lastResetVersion === 0 && this.resetVersion > 0) {
+			this.state.lastResetVersion = this.resetVersion;
+		}
+		
 		this.players[0].applyRemote(data.players?.["1"]);
 		this.players[1].applyRemote(data.players?.["2"]);
 		this.syncNameInput();
