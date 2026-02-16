@@ -10,7 +10,7 @@ Un juego web multijugador donde dos jugadores compiten para encontrar números s
 
 ## 🚀 Demo en Vivo
 
-🎯 **[Jugar Ahora]((https://drhmf.github.io/STOPGAME/))**
+🎯 **[Jugar Ahora](https://drhmf.github.io/STOPGAME/)**
 
 > **Nota:** Reemplaza `TU-USUARIO` con tu nombre de usuario de GitHub después del despliegue.
 
