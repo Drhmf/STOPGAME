@@ -17,14 +17,82 @@
                 <h1>STOP Numérico</h1>
                 <p class="subtitle">Un duelo mental donde el tiempo llena tu mano. Encuentra el numero correcto antes de que se complete.</p>
             </div>
-            <div class="hero-badge">
-                <span class="label">Turno</span>
-                <span id="turn-indicator" class="turn-pill">Jugador 1</span>
+            <div class="hero-controls">
+                <div class="hero-badge">
+                    <span class="label">Turno</span>
+                    <span id="turn-indicator" class="turn-pill">Jugador 1</span>
+                </div>
+                <div class="header-buttons">
+                    <button id="theme-toggle" class="icon-btn" title="Cambiar tema">☀️</button>
+                    <button id="profile-btn" class="icon-btn" title="Mi perfil">👤</button>
+                    <button id="achievements-btn" class="icon-btn" title="Logros">🏆</button>
+                </div>
             </div>
         </header>
 
+        <!-- Panel de Perfil Rápido -->
+        <div id="profile-display" class="profile-display">
+            <span class="avatar">👤</span>
+            <div class="profile-info">
+                <p class="username">Sin nombre</p>
+                <p class="level">Nivel 1</p>
+            </div>
+        </div>
+
         <section class="controls">
             <div class="control-card">
+                <!-- Nombre del Jugador (OBLIGATORIO) -->
+                <div class="name-fields required-section">
+                    <div class="name-field">
+                        <label class="label" for="player-name">Tu nombre <span class="required">*</span></label>
+                        <input id="player-name" type="text" placeholder="Ingresa tu nombre primero" maxlength="16" required />
+                        <p class="hint-text">Debes ingresar un nombre antes de crear o unirse a una sala</p>
+                    </div>
+                </div>
+
+                <!-- Selectores de Dificultad y Modo -->
+                <div class="game-settings">
+                    <div class="setting-group">
+                        <p class="label">Dificultad</p>
+                        <div class="difficulty-selector" role="group" aria-label="Selector de dificultad">
+                            <label>
+                                <input type="radio" name="difficulty" value="easy" />
+                                <span>Fácil (1-50)</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="difficulty" value="normal" checked />
+                                <span>Normal (1-100)</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="difficulty" value="hard" />
+                                <span>Difícil (1-200)</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="difficulty" value="extreme" />
+                                <span>Extremo (1-500)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <p class="label">Modo de Juego</p>
+                        <div class="mode-selector" role="group" aria-label="Selector de modo">
+                            <label>
+                                <input type="radio" name="game-mode" value="classic" checked />
+                                <span>📊 Clásico</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="game-mode" value="infinite" />
+                                <span>♾️ Infinito</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="game-mode" value="challenge" />
+                                <span>⚡ Desafío</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="room-row">
                     <div class="room-field">
                         <label class="label" for="room-code">Codigo de sala</label>
@@ -39,12 +107,6 @@
                         <p id="room-status" class="status-text">Sin conexion</p>
                         <p class="label">Tu rol</p>
                         <p id="player-role" class="status-text">--</p>
-                    </div>
-                </div>
-                <div class="name-fields">
-                    <div class="name-field">
-                        <label class="label" for="player-name">Tu nombre</label>
-                        <input id="player-name" type="text" placeholder="Tu nombre" maxlength="16" />
                     </div>
                 </div>
                 <div class="mode-row">
@@ -148,6 +210,65 @@
             <h2 id="winner-title">Ganador</h2>
             <p id="winner-message" class="modal-message"></p>
             <button id="play-again" class="primary">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <!-- Modal de Perfil -->
+    <div id="profile-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+        <div class="modal-card profile-modal-card">
+            <div class="modal-header">
+                <h2 id="profile-title">Mi Perfil</h2>
+                <button id="close-profile" class="close-btn" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="profile-form">
+                <div class="form-group">
+                    <label class="label" for="username-input">Nombre de usuario</label>
+                    <input id="username-input" type="text" placeholder="Tu nombre" maxlength="20" />
+                </div>
+                <div class="form-group">
+                    <label class="label" for="avatar-input">Avatar (emoji)</label>
+                    <input id="avatar-input" type="text" placeholder="👤" maxlength="2" />
+                </div>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <p class="stat-label">Nivel</p>
+                        <p class="stat-value" id="profile-level">1</p>
+                    </div>
+                    <div class="stat">
+                        <p class="stat-label">Victorias</p>
+                        <p class="stat-value" id="profile-wins">0</p>
+                    </div>
+                    <div class="stat">
+                        <p class="stat-label">Derrotas</p>
+                        <p class="stat-value" id="profile-losses">0</p>
+                    </div>
+                    <div class="stat">
+                        <p class="stat-label">Partidas</p>
+                        <p class="stat-value" id="profile-games">0</p>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <p class="label">Experiencia</p>
+                    <div class="bar">
+                        <div class="fill" id="xp-bar" style="width: 0%"></div>
+                    </div>
+                    <p class="xp-text" id="xp-text">0 / 100 XP</p>
+                </div>
+                <button id="save-profile" class="primary full-width">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Logros -->
+    <div id="achievements-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="achievements-title">
+        <div class="modal-card achievements-modal-card">
+            <div class="modal-header">
+                <h2 id="achievements-title">Logros y Badges 🏆</h2>
+                <button id="close-achievements" class="close-btn" aria-label="Cerrar">✕</button>
+            </div>
+            <div id="achievements-grid" class="achievements-grid">
+                <!-- Logros se generan dinámicamente -->
+            </div>
         </div>
     </div>
 
