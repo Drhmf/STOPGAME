@@ -549,6 +549,12 @@ class RoomClient {
 			}
 		});
 	}
+
+	async getRoom(code) {
+		const ref = this.roomRef(code);
+		const snapshot = await getDoc(ref);
+		return snapshot.exists() ? snapshot.data() : null;
+	}
 }
 
 class Game {
@@ -847,7 +853,22 @@ class Game {
 			this.setStatus("Ingresa un codigo de sala valido.");
 			return;
 		}
-		this.players[1].reset(playerName, 100);
+		
+		// Obtener la dificultad de la sala antes de resetear
+		try {
+			const roomData = await this.roomClient.getRoom(code);
+			if (!roomData) {
+				this.setStatus("Sala no encontrada.");
+				NotificationSystem.notify("La sala no existe o ya fue cerrada", "error");
+				return;
+			}
+			const difficulty = roomData.difficulty || "normal";
+			const diffConfig = DIFFICULTIES[difficulty] || DIFFICULTIES.normal;
+			this.players[1].reset(playerName, diffConfig.range.max);
+		} catch (error) {
+			console.warn("No se pudo obtener dificultad de sala, usando default", error);
+			this.players[1].reset(playerName, 100);
+		}
 		try {
 			await this.roomClient.joinRoom(code, this.serializePlayer(this.players[1]));
 			this.connectToRoom(code, 2);
