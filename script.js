@@ -1469,6 +1469,21 @@ const game = new Game({
 
 game.init();
 
+// ========== ANTI-CHEATING: PREVENIR BÚSQUEDA Y MENÚ CONTEXTUAL ==========
+// Bloquear Ctrl+F / Cmd+F para evitar que jugadores tramposos busquen números
+document.addEventListener('keydown', (e) => {
+	if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+		e.preventDefault();
+		game.setStatus('⚠️ Búsqueda deshabilitada en este juego para fairness');
+	}
+});
+
+// Bloquear menú contextual (click derecho) para evitar inspeccionar
+document.addEventListener('contextmenu', (e) => {
+	e.preventDefault();
+	game.setStatus('⚠️ Menú contextual deshabilitado para fairness');
+});
+
 if (!hasPlaceholderConfig) {
 	onAuthStateChanged(auth, (user) => {
 		if (!user) {
