@@ -4,7 +4,7 @@ Un juego web multijugador donde dos jugadores compiten para encontrar números d
 
 ## 🚀 Demo en Vivo
 
-[Jugar STOP Numérico](https://TU-USUARIO.github.io/JUEGO-STOP/)
+[Jugar STOP Numérico](https://drhmf.github.io/STOPGAME/)
 
 ## ✨ Características
 
