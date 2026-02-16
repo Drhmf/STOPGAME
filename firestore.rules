@@ -27,32 +27,24 @@ service cloud.firestore {
       allow read: if isSignedIn();
       
       // Permitir crear sala si está autenticado y los datos son válidos
-      allow create: if isSignedIn() 
+      allow create: if isSignedIn()
         && request.resource.data.keys().hasAll([
-          'createdAt', 
-          'host', 
-          'players', 
-          'status',
-          'mode',
-          'turn'
+          'createdAt',
+          'updatedAt',
+          'players',
+          'status'
         ])
         && request.resource.data.players.size() <= 2
-        && request.resource.data.host == request.auth.uid
         && request.resource.data.status == 'waiting';
       
-      // Permitir actualizar solo a los jugadores de la sala
-      allow update: if isPlayerInRoom()
-        // No permitir cambiar el host
-        && request.resource.data.host == resource.data.host
-        // No permitir más de 2 jugadores
-        && request.resource.data.players.size() <= 2
-        // No permitir eliminar jugadores existentes (solo agregar)
-        && resource.data.players.keys().hasAll(
-          request.resource.data.players.keys()
-        );
+      // Permitir actualizar si está autenticado y la sala sigue con max 2 jugadores
+      allow update: if isSignedIn()
+        && request.resource.data.players.size() <= 2;
       
-      // No permitir eliminar salas (se pueden agregar reglas de limpieza con Cloud Functions)
-      allow delete: if false;
+      // Permitir eliminar salas expiradas (más de 24 horas sin actividad)
+      allow delete: if isSignedIn()
+        && resource.data.updatedAt != null
+        && request.time.toMillis() - resource.data.updatedAt.toMillis() > 86400000;
     }
     
     // Denegar acceso a cualquier otra colección
